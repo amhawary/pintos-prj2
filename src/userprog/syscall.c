@@ -26,6 +26,5 @@ syscall_handler (struct intr_frame *f UNUSED)
    
    default:
     printf("Sys Call lol\n");
-    break;
    }
 }

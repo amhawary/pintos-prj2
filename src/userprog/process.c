@@ -38,9 +38,6 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
-  char *token, *save_ptr;
-  token = strtok_r (file_name, " ", &save_ptr);
-
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
 
@@ -64,28 +61,26 @@ start_process (void *file_name_)
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
 
-  success = load (file_name, &if_.eip, &if_.esp);
-  // Pushin P
-
+  char *token;
+  char *save_ptr; 
   char *argv[16];
-  char *token, *save_ptr;
   int argc = 0;
   int rem = 1;
 
-  printf("Starting at 75\n");
-
-  // Divide arguments and put into argv
-   for (token = strtok_r (file_name_, " ", &save_ptr); token != NULL;
+    // Divide arguments and put into argv
+   for (token = strtok_r (file_name, " ", &save_ptr); token != NULL;
         token = strtok_r (NULL, " ", &save_ptr)){
           argv[argc] = token;
-          rem += strlen(argv[argc]);
           printf("%s\n",argv[argc]);
+          rem += strlen(argv[argc]) + 1;
           argc++;
         };
-
+  printf("Rem = %d\n",rem);
   rem = rem % 4;
-  
-  void **addrv[argc];
+  success = load (argv[0], &if_.eip, &if_.esp);
+
+  printf("Starting at 75\n");
+  void *addrv[argc];
   
   // Push arguments onto stack + save each address in addrv
   if_.esp--;
@@ -93,47 +88,39 @@ start_process (void *file_name_)
   for(int i = argc - 1; i > -1; i-- ) {
     for(int j = strlen(argv[i]) - 1; j > -1; j--){
       if_.esp--;
-      memset(&if_.esp, argv[i][j],1);
+      memset(if_.esp, argv[i][j],1);
     }
     addrv[i] = if_.esp;
-  }
-
-hex_dump(if_.esp, if_.esp, PHYS_BASE - if_.esp, true );
-
-    printf("Reached 100\n");
-
-  // Padding
-
-  for(int i = 1; i < rem + 4; i++) {
     if_.esp--;
   }
+    printf("Reached 100\n");
+  // Padding
 
-hex_dump( if_.esp, if_.esp, PHYS_BASE - if_.esp, true );
+  printf("Rem = %d\n",rem);
+  for(int i = 0; i < rem + 4; i++) {
+    if_.esp--;
+  }
     printf("Reached 108\n");
-
- //hex_dump(if_.esp, if_.esp, PHYS_BASE - if_.esp, true);
 
   // Push addresses
   for (int i = argc -1; i > -1; i--){ 
     if_.esp -= 4;
     printf("%d\n",i);
-    memset(&if_.esp, addrv[i], 4);
-    }
+    *((void**)if_.esp) = addrv[i];}
 
-    hex_dump( if_.esp, if_.esp, PHYS_BASE - if_.esp, true );
     printf("Reached 114\n");
   	
   // Push address of addresses
   char** argvadd;
   argvadd = if_.esp;
   if_.esp -= 4;
-  memset(&if_.esp, argvadd, 4);
+  *((void**)if_.esp) = argvadd;
     printf("Reached 121\n");
 
   // *((void**)if_.esp)
   // Push argc
   if_.esp -= 4;
-  memset(&if_.esp, argc, 1);
+  memset(if_.esp, argc, 1);
   
   // Fake return
   if_.esp -= 4;
@@ -521,7 +508,7 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success) {
-        *esp = PHYS_BASE-12;
+        *esp = PHYS_BASE;
       } else
         palloc_free_page (kpage);
     }
