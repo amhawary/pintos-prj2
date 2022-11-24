@@ -78,7 +78,8 @@ start_process (void *file_name_)
   printf("Rem = %d\n",rem);
   rem = rem % 4;
   success = load (argv[0], &if_.eip, &if_.esp);
-
+  
+  if (success == true) {
   printf("Starting at 75\n");
   void *addrv[argc];
   
@@ -127,7 +128,7 @@ start_process (void *file_name_)
   printf("Reached 127\n");
   hex_dump(if_.esp, if_.esp, PHYS_BASE - if_.esp, true);
   printf("Reached 133\n");
-
+  }
   /* If load failed, quit. */
   palloc_free_page (file_name);
   if (!success) 

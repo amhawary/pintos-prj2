@@ -93,6 +93,11 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
       
+    struct file* files_opened[20]; //array of file pointers;
+    int current_fd; //keeps track of the current fd; doesn't reaSSllocate closed files' fds though, may be an issue later <FIX?>
+
+
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
