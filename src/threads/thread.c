@@ -291,6 +291,7 @@ thread_exit (void)
   ASSERT (!intr_context ());
 
 #ifdef USERPROG
+  printf("%s: exit_code(%d)", thread_current()->name, thread_current()->exit_status);
   process_exit ();
 #endif
 

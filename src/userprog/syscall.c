@@ -30,7 +30,7 @@ int sys_write(int fd, void* buffer, int size)
     }
     else
     {
-      return(file_write(current_file, buffer, size)); //returns bytes that are written or it should in our case.
+      printf("Buffer contents: %s\n", buffer); //returns bytes that are written or it should in our case.
     }
   }
 }
@@ -85,7 +85,8 @@ int code= *(int*)(f->esp);
 
     case SYS_EXIT:{
       printf('omg its exiting');
-      thread_exit();
+      thread_current()->exit_status = f->esp;
+      thread_exit(); //get from other pintos
       break;
     }
   
@@ -113,7 +114,8 @@ int code= *(int*)(f->esp);
 
   default:
     printf("Sis Call sksksksks");
-}}
+}
+}
 //exit.c was created for some reason
 //edits in makefile of examples(added exit_src) and exit
 //code was taken in from from different github pages combined so inshallah it should work

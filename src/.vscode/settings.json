@@ -1,3 +1,6 @@
 {
-    "github-enterprise.uri": "https://gitlab.uwe.ac.uk"
+    "github-enterprise.uri": "https://gitlab.uwe.ac.uk",
+    "files.associations": {
+        "syscall.h": "c"
+    }
 }
