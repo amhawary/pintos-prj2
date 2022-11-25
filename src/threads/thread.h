@@ -89,11 +89,11 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-
+    int exit_status;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
       
-    struct file* files_opened[20]; //array of file pointers;
+    struct file*  files_opened[20]; //array of file pointers;
     int current_fd; //keeps track of the current fd; doesn't reaSSllocate closed files' fds though, may be an issue later <FIX?>
 
 
