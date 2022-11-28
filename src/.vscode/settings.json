@@ -1,6 +1,9 @@
 {
     "github-enterprise.uri": "https://gitlab.uwe.ac.uk",
     "files.associations": {
-        "syscall.h": "c"
+        "syscall.h": "c",
+        "*.tcc": "c",
+        "fstream": "c",
+        "stdio.h": "c"
     }
 }

@@ -3,15 +3,14 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "lib/stdio.h"
  
 static void syscall_handler (struct intr_frame *);
-int sys_write(int fd, void* buffer, int size);
-
 //writes the size bytes from buffer to open file fd and returns the number of bytes written
 int sys_write(int fd, void* buffer, int size)
 {
   //if 1 write to standard output
-  if (fd == 1)
+  if (fd == STDOUT_FILENO)
   {
     putbuf(buffer,size);
     return size;
@@ -30,7 +29,8 @@ int sys_write(int fd, void* buffer, int size)
     }
     else
     {
-      printf("Buffer contents: %s\n", buffer); //returns bytes that are written or it should in our case.
+      return (file_write(current_file,buffer,size)); 
+      //returns bytes that are written or it should in our case.
     }
   }
 }
@@ -73,7 +73,9 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED)
 {
-
+unsigned int size;
+int fd;
+void *buffer;
 int code= *(int*)(f->esp);
  
   switch(code){
@@ -95,15 +97,14 @@ int code= *(int*)(f->esp);
     //   break;
 
    case SYS_WRITE: //int write (int fd, const void *buffer, unsigned size)
-    {
-      
-      int fd = *((int*)f->esp + 1);
-      void* buffer = (void*)(*((int*)f->esp + 2));
-      unsigned size = *((unsigned*)f->esp + 3);
+    
+      fd = *((int*)f->esp + 4);
+      buffer = (void*)(*((int*)f->esp + 8));
+      size = *((unsigned int*)f->esp + 12);
       printf("Buffer contents: %s\n", buffer);
       f->eax = sys_write(fd, buffer, size);
       break;
-    }
+    
 
   case SYS_OPEN:
     {
@@ -111,9 +112,9 @@ int code= *(int*)(f->esp);
      f->eax = sys_open(file_name);
      break;
     }
-
+  
   default:
-    printf("Sis Call sksksksks");
+    printf("Sis Call sksksksks\n");
 }
 }
 //exit.c was created for some reason
