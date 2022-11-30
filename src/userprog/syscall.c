@@ -8,6 +8,9 @@
 #include "threads/vaddr.h"
 #include "filesys/file.h"
 #include "filesys/filesys.h"
+#include "process.c"
+
+typedef int pid_t;
 struct lock filesys_lock;
 static void syscall_handler (struct intr_frame *);
 //writes the size bytes from buffer to open file fd and returns the number of bytes written
@@ -70,7 +73,18 @@ int sys_open(char* file_name)
   }
 }
 
- int sys_exec(char* cmd_line) {
+bool sys_create(const char* filename, unsigned initial_size) {
+  lock_acquire (&filesys_lock);
+  bool return_code = filesys_create(filename, initial_size);
+  lock_release (&filesys_lock);
+  return return_code;
+}
+
+int sys_wait(pid_t pid) {
+  process_wait(pid);
+}
+
+pid_t sys_exec(char* cmd_line) {
           lock_acquire (&filesys_lock); // load() uses filesystem
           int pid = process_execute(cmd_line);
           lock_release (&filesys_lock);
@@ -131,15 +145,27 @@ int code= *(int*)(f->esp);
       printf("Buffer contents: %s\n", buffer);
       f->eax = sys_write(fd, buffer, size);
       break;
-    
 
-  case SYS_OPEN:
-    {
+  case SYS_CREATE: {
+    char* file_name = (char*)(*((int*)f->esp+4));
+    int size = ((int*)f->esp+8);
+
+    f->eax = sys_create(file_name,size);
+    break;
+    }
+
+  case SYS_OPEN: {
      char* file_name = (char*)(*((int*)f->esp+1));
      f->eax = sys_open(file_name);
      break;
     }
   
+  case SYS_WAIT: {
+    f->eax=sys_wait(f->esp+1);
+    break;
+  }
+
+
   default:
     printf("Sis Call sksksksks\n");
 }
