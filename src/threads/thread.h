@@ -91,8 +91,8 @@ struct thread
     struct list_elem allelem;           /* List element for all threads list. */
     int exit_status;
     /* Shared between thread.c and synch.c. */
-    struct list_elem elem;              /* List element. */
-      
+    struct list_elem elem; 
+    struct list_elem children_list;             /* List element. */
     struct file*  files_opened[20]; //array of file pointers;
     int current_fd; //keeps track of the current fd; doesn't reaSSllocate closed files' fds though, may be an issue later <FIX?>
 
@@ -107,6 +107,10 @@ struct thread
     unsigned magic;                     /* Detects stack overflow. */
   };
 
+struct pcb {
+
+   
+}; // Process control block
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
