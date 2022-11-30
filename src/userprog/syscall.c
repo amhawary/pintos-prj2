@@ -4,14 +4,19 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "lib/stdio.h"
- 
+#include "threads/synch.h"
+#include "threads/vaddr.h"
+#include "filesys/file.h"
+#include "filesys/filesys.h"
+struct lock filesys_lock;
 static void syscall_handler (struct intr_frame *);
 //writes the size bytes from buffer to open file fd and returns the number of bytes written
 int sys_write(int fd, void* buffer, int size)
 {
-  //if 1 write to standard output
+     //if 1 write to standard output
   if (fd == STDOUT_FILENO)
   {
+    printf("Reached 19\n");
     putbuf(buffer,size);
     return size;
   }
@@ -20,15 +25,18 @@ int sys_write(int fd, void* buffer, int size)
   {
     if (fd > 20) //over file limit
     {
+      printf("Reached 28\n");
       return -1;
     }
     struct file* current_file = thread_current()->files_opened[fd];  //this checks file, also if you r wondering wtf is files_opened ive created it in thread.h, check it out.
     if (current_file == NULL) 
     {
+      printf("Reached 34\n");
       return -1;
     }
     else
     {
+      printf("Reached 39\n");
       return (file_write(current_file,buffer,size)); 
       //returns bytes that are written or it should in our case.
     }
@@ -62,6 +70,12 @@ int sys_open(char* file_name)
   }
 }
 
+ int sys_exec(char* cmd_line) {
+          lock_acquire (&filesys_lock); // load() uses filesystem
+          int pid = process_execute(cmd_line);
+          lock_release (&filesys_lock);
+          return pid;
+}
 
 void
 syscall_init (void) 
@@ -91,16 +105,29 @@ int code= *(int*)(f->esp);
       thread_exit(); //get from other pintos
       break;
     }
+
+    case SYS_EXEC: {
+      printf('omg its executing');
+      if ((f->esp == NULL) || (!is_user_vaddr(f->esp)))
+            return -1;
+      else {
+        char *process = f->esp + 4;
+        sys_exec(process);
+        break;}
+    }
   
     // case SYS_FILESIZE:
     //   file_open();
     //   break;
 
    case SYS_WRITE: //int write (int fd, const void *buffer, unsigned size)
-    
-      fd = *((int*)f->esp + 4);
-      buffer = (void*)(*((int*)f->esp + 8));
-      size = *((unsigned int*)f->esp + 12);
+      printf("omg its writing\n");
+      hex_dump(f->esp,f->esp,PHYS_BASE-f->esp,true);
+      fd = f->esp + 4;
+      buffer = f->esp + 8;
+      size = f->esp + 12;
+      printf("fd = %d\n", fd);
+      printf("Size = %d\n", size);
       printf("Buffer contents: %s\n", buffer);
       f->eax = sys_write(fd, buffer, size);
       break;

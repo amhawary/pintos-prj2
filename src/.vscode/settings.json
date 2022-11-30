@@ -4,6 +4,11 @@
         "syscall.h": "c",
         "*.tcc": "c",
         "fstream": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "vaddr.h": "c",
+        "synch.h": "c",
+        "*.inc": "c",
+        "thread.h": "c",
+        "filesys.h": "c"
     }
 }

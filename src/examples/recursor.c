@@ -5,6 +5,7 @@
 int
 main (int argc, char *argv[])
 {
+  printf("omg im recurring");
   char buffer[128];
   pid_t pid;
   int retval = 0;
