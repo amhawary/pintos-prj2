@@ -156,40 +156,47 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 { 
-  int result;
-  struct thread *current = thread_current;
-  struct pcb* child;
-  struct list_elem *e;
-  if (child_tid != -1)
-   {
-     e = list_tail (&current->children_list);
-     while ((e = list_prev (e)) != list_head (&current->children_list))
-       {
-         child = list_entry(e, struct child_status, elem_child_status);
-         if (child->child_id == child_tid)
-           break;
-       }
+  // int result;
+  // struct thread *current = thread_current;
+  // struct pcb* child;
+  // struct list_elem *e;
+  // if (child_tid != -1)
+  //  {
+  //    e = list_tail (&current->children_list);
+  //    while ((e = list_prev (e)) != list_head (&current->children_list))
+  //      {
+  //        child = list_entry(e, struct pcb, elem_child_status);
+  //        if (child->child_id == child_tid)
+  //          break;
+  //      }
 
-     if (child == NULL)
-      result = -1;
-     else
-       {
-         lock_acquire(&cur->lock_child);
-         while (thread_get_by_id (child_tid) != NULL)
-           cond_wait (&cur->cond_child, &cur->lock_child);
-         if (!child->is_exit_called || child->has_been_waited)
-           status = -1;
-         else
-           { 
-             status = child->child_exit_status;
-             child->has_been_waited = true;
-           }
-         lock_release(&cur->lock_child);
-       }
-   }
-  else 
-    result = -1;
-  return result;
+  //    if (child == NULL)
+  //     result = -1;
+  //    else
+  //      {
+  //        lock_acquire(&current->lock_child);
+  //        while (thread_get_by_id (child_tid) != NULL)
+  //          cond_wait (&current->cond_child, &current->lock_child);
+  //        if (!child->is_exit_called || child->has_been_waited)
+  //          result = -1;
+  //        else
+  //          { 
+  //            result = child->child_exit_status;
+  //            child->has_been_waited = true;
+  //          }
+  //        lock_release(&current->lock_child);
+  //      }
+  //  }
+  // else 
+  //   result = -1;
+  // return result;
+
+
+    // FIXME: @bgaster --- quick hack to make sure processes execute!
+  for(;;) ;
+    
+  return -1;
+
 }
 
 /* Free the current process's resources. */

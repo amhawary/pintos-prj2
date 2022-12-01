@@ -9,6 +9,18 @@
         "synch.h": "c",
         "*.inc": "c",
         "thread.h": "c",
-        "filesys.h": "c"
+        "filesys.h": "c",
+        "pagedir.h": "c",
+        "file.h": "c",
+        "interrupt.h": "c",
+        "iosfwd": "c",
+        "istream": "c",
+        "limits": "c",
+        "sstream": "c",
+        "streambuf": "c",
+        "exception": "c",
+        "new": "c",
+        "ostream": "c",
+        "stdlib.h": "c"
     }
 }

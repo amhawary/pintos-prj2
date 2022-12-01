@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <syscall.h>
+#include "lib/user/syscall.h"
 
 int
 main (int argc, char *argv[])
@@ -24,6 +25,7 @@ main (int argc, char *argv[])
     {
       snprintf (buffer, sizeof buffer,
                 "recursor %s %d %s", argv[1], atoi (argv[2]) - 1, argv[3]);
+      printf("%s\n", buffer);
       pid = exec (buffer);
       if (atoi (argv[3]))
         retval = wait (pid);

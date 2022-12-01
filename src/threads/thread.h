@@ -93,7 +93,7 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem; 
     struct list_elem children_list;             /* List element. */
-    struct file*  files_opened[20]; //array of file pointers;
+    struct file*  opened_files[20]; //array of file pointers;
     int current_fd; //keeps track of the current fd; doesn't reaSSllocate closed files' fds though, may be an issue later <FIX?>
 
 
@@ -108,7 +108,11 @@ struct thread
   };
 
 struct pcb {
-
+  tid_t child_id;
+  bool is_exit_called;
+  bool has_been_waited;
+  int child_exit_status;
+  struct list_elem elem_child_status;  
    
 }; // Process control block
 /* If false (default), use round-robin scheduler.
