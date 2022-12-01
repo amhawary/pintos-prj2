@@ -5,6 +5,8 @@
 int
 main (int argc, char **argv)
 {
-  write(1,'x y',4);
+  int fd = open("test");
+  char *test = "my name marwan";
+  write(fd,test,sizeof(test));
   return EXIT_SUCCESS;
 }

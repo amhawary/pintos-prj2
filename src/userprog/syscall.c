@@ -10,16 +10,11 @@
 #include "filesys/file.h"
 #include "filesys/filesys.h"
 #include "process.h"
+#include "devices/input.h"
 typedef int pid_t;
 struct lock filesys_lock;
 static void syscall_handler (struct intr_frame *);
-struct fdtable {
-  int fd_number;
-  tid_t king;
-  struct file *file_struct;
-  char *file_name;
-  struct list_elem elem;
-};
+
 //writes the size bytes from buffer to open file fd and returns the number of bytes written
 int sys_write(int fd, void* buffer, int size)
 {
@@ -34,50 +29,59 @@ int sys_write(int fd, void* buffer, int size)
   {
     if (fd> 20) //over file limit
     {
-      printf("Reached 28\n");
+      printf("Reached 38\n");
       return -1;
     }
     struct file* current_file = thread_current()->opened_files[fd];  //this checks file, also if you r wondering wtf is files_opened ive created it in thread.h, check it out.
     if (current_file == NULL) 
     {
-      printf("Reached 34\n");
+      printf("Reached 44\n");
       return -1;
     }
     else
     {
-      printf("Reached 39\n");
+      printf("Reached 49\n");
       return (file_write(current_file,buffer,size)); 
       //returns bytes that are written or it should in our case.
     }
   }
 }
 
-int sys_read(int fd, void* buffer, int size)
+int sys_read(int fdnum, void* buffer, int size)
 {
      //if 1 write to standard output
-  if (fd == STDIN_FILENO)
+  if (fdnum == STDIN_FILENO)
   {
-    putbuf(buffer,size);
-    return size;
+    char *temp;
+    char key;
+    int i;
+    for (i = 0; i > size; i++)
+    {
+    key = input_getc();
+    temp += key;
+    }
+    memcpy(buffer,temp,size);
+    return i;
   }
-  //if anything else - write to the file
+  //if anything else - read from the file
   else 
   {
-    if (fd> 20) //over file limit
+    if (fdnum> 20) //over file limit
     {
-      printf("Reached 28\n");
+      printf("Reached 77\n");
       return -1;
     }
-    struct file* current_file = thread_current()->opened_files[fd];  //this checks file, also if you r wondering wtf is files_opened ive created it in thread.h, check it out.
+    struct fd *fd = thread_current()->opened_files[fdnum];  //this checks file, also if you r wondering wtf is files_opened ive created it in thread.h, check it out.
+    struct file *current_file = fd->file_struct;
     if (current_file == NULL) 
     {
-      printf("Reached 34\n");
+      printf("Reached 83\n");
       return -1;
     }
     else
     {
-      printf("Reached 39\n");
-      return (file_read(current_file,buffer,size)); 
+      printf("Reached 88\n");
+      return (file_read(current_file,&buffer,size)); 
       //returns bytes that are written or it should in our case.
     }
   }
@@ -87,7 +91,7 @@ int sys_open(char* file_name)
 {
   printf("SYS_OPEN called - attempting to open file %s!\n", file_name);
   struct file* f = filesys_open(file_name);
-  struct fdtable *fd;
+  struct fd *fd;
   int result = -1;
   if (!f)
   {
@@ -97,24 +101,54 @@ int sys_open(char* file_name)
   else
   {
       fd = calloc (1, sizeof *fd);
-      thread_current()->current_fd++;
-      fd->fd_number = thread_current()->current_fd;
+      if (list_empty(thread_current()->opened_files)) {
+      fd->fd_number = 3;
       fd-> king = thread_current()->tid;
       fd->file_struct = f;
-      printf("Reached 74\n");
+      fd->file_name = file_name;
       list_push_back(&(thread_current()->opened_files),&fd->elem);
-      printf("Reached 76\n");
+      } else {
+      int index = list_size(thread_current()->opened_files);
+      fd->fd_number = index;
+      fd-> king = thread_current()->tid;
+      fd->file_struct = f;
+      fd->file_name = file_name;
+      list_push_back(&(thread_current()->opened_files),&fd->elem);
+      }
+
       result = fd->fd_number;
-      printf("%d", result);
+      printf("%d\n", result);
       return result;
       }
 }
 
+void sys_close(int fdnum) {
+  printf("SYS_CLOSE called - attempting to close fd = %d!\n", fdnum);
+  int result = -1;
+  struct fd *fd;
+  struct list_elem *e;
+  
+  for (e = list_end (&(thread_current()->opened_files)); e != list_head (&(thread_current()->opened_files));
+      e = list_prev (e))
+  { 
+    printf("Reached 127\n");
+    fd = list_entry (e, struct fd, elem);
+    if (fd->fd_number == fdnum) {
+          printf("File found: {%s}, closing...\n", fd->file_name);
+      	  list_remove (e);
+          file_close (fd->file_struct);
+          free (fd->file_struct);
+          return ;
+    }
+  }
+
+  printf("Close Failed: File not found\n");
+  return -1;
+}
+
 bool sys_create(const char* filename, unsigned initial_size) {
-  lock_acquire (&filesys_lock);
-  bool return_code = filesys_create(filename, initial_size);
-  lock_release (&filesys_lock);
-  return return_code;
+  printf("%s %d",filename,initial_size);
+  return filesys_create(filename, initial_size);
 }
 
 int sys_wait(pid_t pid) {
@@ -122,9 +156,8 @@ int sys_wait(pid_t pid) {
 }
 
 pid_t sys_exec(char* cmd_line) {
-          lock_acquire (&filesys_lock); // load() uses filesystem
+// load() uses filesystem
           int pid = process_execute(cmd_line);
-          lock_release (&filesys_lock);
           return pid;
 }
 
@@ -203,6 +236,13 @@ int code= *(int*)(f->esp);
       memcpy(&size, f->esp + 12, 4);
       f->eax = sys_read(fd, buffer, size);
       break;
+  }
+
+  case SYS_CLOSE:{
+     int fd = (*((int*)f->esp+1));
+     sys_close(fd);
+     break;
+    
   }
 
   default:

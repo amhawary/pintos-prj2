@@ -80,6 +80,14 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
+struct fd {
+  int fd_number;
+  tid_t king;
+  struct file *file_struct;
+  char *file_name;
+  struct list_elem elem;
+};
+
 struct thread
   {
     /* Owned by thread.c. */
@@ -93,7 +101,7 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem; 
     struct list_elem children_list;             /* List element. */
-    struct file*  opened_files[20]; //array of file pointers;
+    struct fd*  opened_files[20]; //array of file pointers;
     int current_fd; //keeps track of the current fd; doesn't reaSSllocate closed files' fds though, may be an issue later <FIX?>
 
 
