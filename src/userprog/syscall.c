@@ -9,7 +9,7 @@
 #include "lib/string.h"
 #include "filesys/file.h"
 #include "filesys/filesys.h"
-
+#include "process.h"
 typedef int pid_t;
 struct lock filesys_lock;
 static void syscall_handler (struct intr_frame *);
@@ -32,7 +32,7 @@ int sys_write(int fd, void* buffer, int size)
   //if anything else - write to the file
   else 
   {
-    if (fd > 20) //over file limit
+    if (fd> 20) //over file limit
     {
       printf("Reached 28\n");
       return -1;
@@ -52,6 +52,36 @@ int sys_write(int fd, void* buffer, int size)
   }
 }
 
+int sys_read(int fd, void* buffer, int size)
+{
+     //if 1 write to standard output
+  if (fd == STDIN_FILENO)
+  {
+    putbuf(buffer,size);
+    return size;
+  }
+  //if anything else - write to the file
+  else 
+  {
+    if (fd> 20) //over file limit
+    {
+      printf("Reached 28\n");
+      return -1;
+    }
+    struct file* current_file = thread_current()->opened_files[fd];  //this checks file, also if you r wondering wtf is files_opened ive created it in thread.h, check it out.
+    if (current_file == NULL) 
+    {
+      printf("Reached 34\n");
+      return -1;
+    }
+    else
+    {
+      printf("Reached 39\n");
+      return (file_read(current_file,buffer,size)); 
+      //returns bytes that are written or it should in our case.
+    }
+  }
+}
 //opens file with filename and returns filedescriptor of the file also known as fd, learnt from userprog4/4 of kamlesh guy whatever,
 int sys_open(char* file_name) 
 {
@@ -66,22 +96,18 @@ int sys_open(char* file_name)
   }
   else
   {
-    if (fd-> > 20) //file limit exceeded
-    {
-      printf("Error opening file - thread open file limit exceeded.\n");
-      return result;
-    }
-    else
-    {
       fd = calloc (1, sizeof *fd);
       thread_current()->current_fd++;
-      fd->fd_number = thread_current();
+      fd->fd_number = thread_current()->current_fd;
       fd-> king = thread_current()->tid;
       fd->file_struct = f;
-      list_push_back(thread_current()->opened_files,&fd->elem);
+      printf("Reached 74\n");
+      list_push_back(&(thread_current()->opened_files),&fd->elem);
+      printf("Reached 76\n");
       result = fd->fd_number;
+      printf("%d", result);
+      return result;
       }
-  }
 }
 
 bool sys_create(const char* filename, unsigned initial_size) {
@@ -171,6 +197,13 @@ int code= *(int*)(f->esp);
     break;
   }
 
+  case SYS_READ:{
+      memcpy(&fd, f->esp + 4, 4);
+      memcpy(&buffer, f->esp + 8, 4);
+      memcpy(&size, f->esp + 12, 4);
+      f->eax = sys_read(fd, buffer, size);
+      break;
+  }
 
   default:
     printf("Sis Call sksksksks\n");
