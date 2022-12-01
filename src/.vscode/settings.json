@@ -21,6 +21,7 @@
         "exception": "c",
         "new": "c",
         "ostream": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "syscall-nr.h": "c"
     }
 }

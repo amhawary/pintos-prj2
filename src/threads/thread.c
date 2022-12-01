@@ -474,7 +474,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
 
   //t->is_kernel = is_kernel;
-
+  list_init(&(t->children_list));
+  list_init(&(t->opened_files));
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
