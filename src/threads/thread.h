@@ -101,7 +101,7 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem; 
     struct list_elem children_list;             /* List element. */
-    struct fd*  opened_files[20]; //array of file pointers;
+    struct list  opened_files[20]; //array of file pointers;
     int current_fd; //keeps track of the current fd; doesn't reaSSllocate closed files' fds though, may be an issue later <FIX?>
 
 

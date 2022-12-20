@@ -5,8 +5,5 @@
 int
 main (int argc, char **argv)
 {
-  int fd = open(argv[1]);
-  close(fd);
-
-  return EXIT_SUCCESS;
+  return exec(argv[1]);
 }

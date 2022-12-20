@@ -17,7 +17,7 @@ main (void)
       /* Read command. */
       printf ("--");
       read_line (command, sizeof command);
-      
+      printf("String in command or something:%s \n", command);
       /* Execute command. */
       if (!strcmp (command, "exit"))
         break;

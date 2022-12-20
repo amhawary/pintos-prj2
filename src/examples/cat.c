@@ -1,10 +1,14 @@
 /* cat.c
 
+
    Prints files specified on command line to the console. */
 
 #include <stdio.h>
 #include <syscall.h>
 #include <stdbool.h>
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#include "lib/user/syscall.h"
 
 int
 main (int argc, char *argv[]) 
@@ -21,12 +25,13 @@ main (int argc, char *argv[])
           success = false;
           continue;
         }
+      int i;
       for (;;) 
         {
+          printf("%d\n",i++);
           char buffer[1024];
-          int bytes_read = read (fd, buffer, sizeof buffer);
-          if (bytes_read == 0)
-            break;
+          int bytes_read = read (fd, &buffer, sizeof buffer);
+          printf("%d %s %d\n",STDOUT_FILENO, buffer, bytes_read);
           write (STDOUT_FILENO, buffer, bytes_read);
         }
       close (fd);

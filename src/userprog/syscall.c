@@ -16,40 +16,46 @@ struct lock filesys_lock;
 static void syscall_handler (struct intr_frame *);
 
 //writes the size bytes from buffer to open file fd and returns the number of bytes written
-int sys_write(int fd, void* buffer, int size)
+int sys_write(int fdnum, void* buffer, int size)
 {
-     //if 1 write to standard output
-  if (fd == STDOUT_FILENO)
+  if (fdnum == STDOUT_FILENO)
   {
     putbuf(buffer,size);
     return size;
   }
   //if anything else - write to the file
   else 
-  {
-    if (fd> 20) //over file limit
+  { 
+    if (fdnum> 20) //over file limit
     {
-      printf("Reached 38\n");
       return -1;
     }
-    struct file* current_file = thread_current()->opened_files[fd];  //this checks file, also if you r wondering wtf is files_opened ive created it in thread.h, check it out.
-    if (current_file == NULL) 
-    {
-      printf("Reached 44\n");
-      return -1;
-    }
-    else
-    {
-      printf("Reached 49\n");
-      return (file_write(current_file,buffer,size)); 
-      //returns bytes that are written or it should in our case.
-    }
+      struct list_elem *e;
+      struct fd *fd;
+      struct file *current_file;
+
+      for (e = list_end (&(thread_current()->opened_files)); e != list_head (&(thread_current()->opened_files));
+      e = list_prev (e))  { 
+      fd = list_entry (e, struct fd, elem);
+      if (fd->fd_number == fdnum) {
+          printf("File found: {%s}, writing...\n", fd->file_name);
+          current_file = fd->file_struct;}
+      }
+      if (current_file == NULL) 
+      {
+        printf("Reached 46\n");
+        return -1;
+      }
+      else
+      {
+        printf("Reached 51\n");
+        return (file_write(&current_file,&buffer,size)); 
+      }
   }
 }
 
 int sys_read(int fdnum, void* buffer, int size)
 {
-     //if 1 write to standard output
   if (fdnum == STDIN_FILENO)
   {
     char *temp;
@@ -60,30 +66,39 @@ int sys_read(int fdnum, void* buffer, int size)
     key = input_getc();
     temp += key;
     }
-    memcpy(buffer,temp,size);
+    memcpy(&buffer,temp,size);
     return i;
   }
   //if anything else - read from the file
   else 
-  {
+  { 
     if (fdnum> 20) //over file limit
     {
-      printf("Reached 77\n");
       return -1;
     }
-    struct fd *fd = thread_current()->opened_files[fdnum];  //this checks file, also if you r wondering wtf is files_opened ive created it in thread.h, check it out.
-    struct file *current_file = fd->file_struct;
-    if (current_file == NULL) 
-    {
-      printf("Reached 83\n");
-      return -1;
-    }
-    else
-    {
-      printf("Reached 88\n");
-      return (file_read(current_file,&buffer,size)); 
-      //returns bytes that are written or it should in our case.
-    }
+      struct list_elem *e;
+      struct fd *fd;
+      struct file *current_file;
+
+      for (e = list_end (&(thread_current()->opened_files)); e != list_head (&(thread_current()->opened_files));
+      e = list_prev (e))  { 
+      fd = list_entry (e, struct fd, elem);
+      if (fd->fd_number == fdnum) {
+          printf("File found: {%s}, reading...\n", fd->file_name);
+          current_file = fd->file_struct;}
+      }
+      if (current_file == NULL) 
+      {
+        printf("Reached 79\n");
+        return -1;
+      }
+      else
+      {
+        printf("Reached 84\n");
+        int result = file_read(&current_file,&buffer,size);
+        printf("%s",buffer);
+        return result; 
+      }
   }
 }
 //opens file with filename and returns filedescriptor of the file also known as fd, learnt from userprog4/4 of kamlesh guy whatever,
@@ -92,11 +107,11 @@ int sys_open(char* file_name)
   printf("SYS_OPEN called - attempting to open file %s!\n", file_name);
   struct file* f = filesys_open(file_name);
   struct fd *fd;
-  int result = -1;
+  int status = -1;
   if (!f)
   {
     printf("Error opening file - file with name %s not found.\n", file_name);
-    return result;
+    return status;
   }
   else
   {
@@ -116,15 +131,15 @@ int sys_open(char* file_name)
       list_push_back(&(thread_current()->opened_files),&fd->elem);
       }
 
-      result = fd->fd_number;
-      printf("%d\n", result);
-      return result;
+      status = fd->fd_number;
+      printf("%d\n", status);
+      return status;
       }
 }
 
 void sys_close(int fdnum) {
   printf("SYS_CLOSE called - attempting to close fd = %d!\n", fdnum);
-  int result = -1;
+  int status = -1;
   struct fd *fd;
   struct list_elem *e;
   
@@ -146,9 +161,14 @@ void sys_close(int fdnum) {
   return -1;
 }
 
-bool sys_create(const char* filename, unsigned initial_size) {
-  printf("%s %d",filename,initial_size);
-  return filesys_create(filename, initial_size);
+bool sys_create(const char* file_name, unsigned initial_size) {
+  printf("%s %d\n",file_name,initial_size);
+  return filesys_create(file_name, initial_size);
+}
+
+bool sys_remove(const char* file_name) {
+  printf("%s\n",file_name);
+  return filesys_remove(file_name);
 }
 
 int sys_wait(pid_t pid) {
@@ -175,6 +195,8 @@ unsigned int size;
 int fd;
 void *buffer;
 int code= *(int*)(f->esp);
+char *file_name;
+
  
   switch(code){
     case SYS_HALT: {
@@ -200,22 +222,27 @@ int code= *(int*)(f->esp);
         break;}
     }
   
-    // case SYS_FILESIZE:
-    //   file_open();
-    //   break;
+   case SYS_REMOVE: {
+        memcpy(&file_name,f->esp +4,4);
+        f->eax = sys_remove(file_name);
+        printf("subhanAllah\n");
+        break;
+    }
 
-   case SYS_WRITE: //int write (int fd, const void *buffer, unsigned size)
-      memcpy(&fd, f->esp + 4, 4);
-      memcpy(&buffer, f->esp + 8, 4);
-      memcpy(&size, f->esp + 12, 4);
+   case SYS_WRITE: { //int write (int fd, const void *buffer, unsigned size)
+      memcpy(&fd, f->esp + 4,4);
+      memcpy(&buffer, f->esp + 8,4);
+      memcpy(&size, f->esp + 12,4);
       f->eax = sys_write(fd, buffer, size);
       break;
+   }
 
   case SYS_CREATE: {
-    char* file_name = (char*)(*((int*)f->esp+4));
-    int size = ((int*)f->esp+8);
+    memcpy(&file_name,f->esp +4,4);
+    memcpy(&size,f->esp +8,4);
 
     f->eax = sys_create(file_name,size);
+    printf("subhanAllah\n");
     break;
     }
 
@@ -234,7 +261,7 @@ int code= *(int*)(f->esp);
       memcpy(&fd, f->esp + 4, 4);
       memcpy(&buffer, f->esp + 8, 4);
       memcpy(&size, f->esp + 12, 4);
-      f->eax = sys_read(fd, buffer, size);
+      f->eax = sys_read(fd, &buffer, size);
       break;
   }
 

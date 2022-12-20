@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include <syscall.h>
 #include "lib/user/syscall.h"
-
 int
 main (int argc, char **argv)
 {
-  int fd = open(argv[1]);
-  close(fd);
-
-  return EXIT_SUCCESS;
+    int i,j;
+  return remove(argv[1]);
 }
