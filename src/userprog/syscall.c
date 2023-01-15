@@ -95,7 +95,7 @@ int sys_read(int fdnum, void* buffer, int size)
       else
       {
         printf("Reached 84\n");
-        int result = file_read(&current_file,&buffer,size);
+        int result = file_read(current_file,buffer,size);
         printf("%s",buffer);
         return result; 
       }
@@ -251,7 +251,7 @@ char *file_name;
             current_file = fd->file_struct;
           }
         }
-        f->eax = file_write( &current_file, &buffer, size );
+        f->eax = file_write( current_file, buffer, size );
       }
       break;
    }
