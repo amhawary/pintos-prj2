@@ -5,7 +5,7 @@ SRCDIR = ..
 # and then add a name_SRC line that lists its source files.
 PROGS = cat cmp cp echo halt hex-dump ls mcat mcp mkdir pwd rm shell \
 	bubsort insult lineup matmult recursor my open exit create write hatimsexploit \
-	exec ca7by remove crack shellcode
+	exec ca7by remove crack shellcodemarwan
 
 # Should work from project 2 onward.
 cat_SRC = cat.c
@@ -28,9 +28,8 @@ exec_SRC = exec.c
 ca7by_SRC = ca7by.c
 remove_SRC = remove.c
 crack_SRC = crack.c
-shellcode_SRC = shellcode.c
 write_SRC = write.c
-
+shellcodemarwan_SRC = shellcodemarwan.c
 
 # Should work in project 3; also in project 4 if VM is included.
 bubsort_SRC = bubsort.c
