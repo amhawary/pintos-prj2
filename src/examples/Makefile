@@ -4,7 +4,7 @@ SRCDIR = ..
 # To add a new test, put its name on the PROGS list
 # and then add a name_SRC line that lists its source files.
 PROGS = cat cmp cp echo halt hex-dump ls mcat mcp mkdir pwd rm shell \
-	bubsort insult lineup matmult recursor my open exit create write \
+	bubsort insult lineup matmult recursor my open exit create write hatimsexploit \
 	exec ca7by remove crack shellcode
 
 # Should work from project 2 onward.
@@ -23,12 +23,13 @@ my_SRC = my.c
 open_SRC = open.c
 exit_SRC = exit.c
 create_SRC = create.c
-write_SRC = write.c
+hatimsexploit_SRC = hatimsexploit.c
 exec_SRC = exec.c
 ca7by_SRC = ca7by.c
 remove_SRC = remove.c
 crack_SRC = crack.c
 shellcode_SRC = shellcode.c
+write_SRC = write.c
 
 
 # Should work in project 3; also in project 4 if VM is included.

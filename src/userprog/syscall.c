@@ -34,8 +34,8 @@ int sys_write(int fdnum, void* buffer, int size)
       struct fd *fd;
       struct file *current_file;
 
-      for (e = list_end (&(thread_current()->opened_files)); e != list_head (&(thread_current()->opened_files));
-      e = list_prev (e))  { 
+      for (e = list_begin (&(thread_current()->opened_files)); e != list_end (&(thread_current()->opened_files));
+      e = list_next (e))  { 
       fd = list_entry (e, struct fd, elem);
       if (fd->fd_number == fdnum) {
           printf("File found: {%s}, writing...\n", fd->file_name);
@@ -80,8 +80,8 @@ int sys_read(int fdnum, void* buffer, int size)
       struct fd *fd;
       struct file *current_file;
 
-      for (e = list_end (&(thread_current()->opened_files)); e != list_head (&(thread_current()->opened_files));
-      e = list_prev (e))  { 
+      for (e = list_begin (&(thread_current()->opened_files)); e != list_end (&(thread_current()->opened_files));
+      e = list_next (e)) { 
       fd = list_entry (e, struct fd, elem);
       if (fd->fd_number == fdnum) {
           printf("File found: {%s}, reading...\n", fd->file_name);
@@ -207,7 +207,7 @@ char *file_name;
 
     case SYS_EXIT:{
       printf('omg its exiting');
-      thread_current()->exit_status = f->esp;
+      thread_current()->exit_status = *(int*)(f->esp+4);
       thread_exit(); //get from other pintos
       break;
     }
@@ -230,10 +230,29 @@ char *file_name;
     }
 
    case SYS_WRITE: { //int write (int fd, const void *buffer, unsigned size)
-      memcpy(&fd, f->esp + 4,4);
-      memcpy(&buffer, f->esp + 8,4);
-      memcpy(&size, f->esp + 12,4);
-      f->eax = sys_write(fd, buffer, size);
+      int fdnum = *(int *)(f->esp + 4 );
+      char *buffer = *(char **)(f->esp + 8 );
+      unsigned size = *(unsigned *)(f->esp + 12 );
+
+      if ( fdnum == STDOUT_FILENO ) {
+        putbuf( buffer, size );
+        f->eax = size;
+      }
+      //if anything else - write to the file
+      else {
+        struct list_elem *e;
+        struct fd *fd;
+        struct file *current_file;
+
+        for ( e = list_end( &thread_current()->opened_files ); e != list_head( &thread_current()->opened_files );
+          e = list_prev( e ) ) {
+          fd = list_entry( e, struct fd, elem );
+          if ( fd->fd_number == fdnum ) {
+            current_file = fd->file_struct;
+          }
+        }
+        f->eax = file_write( &current_file, &buffer, size );
+      }
       break;
    }
 
