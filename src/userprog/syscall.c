@@ -38,17 +38,14 @@ int sys_write(int fdnum, void* buffer, int size)
       e = list_next (e))  { 
       fd = list_entry (e, struct fd, elem);
       if (fd->fd_number == fdnum) {
-          printf("File found: {%s}, writing...\n", fd->file_name);
           current_file = fd->file_struct;}
       }
       if (current_file == NULL) 
       {
-        printf("Reached 46\n");
         return -1;
       }
       else
       {
-        printf("Reached 51\n");
         return (file_write(&current_file,&buffer,size)); 
       }
   }
@@ -171,16 +168,6 @@ bool sys_remove(const char* file_name) {
   return filesys_remove(file_name);
 }
 
-int sys_wait(pid_t pid) {
-  process_wait(pid);
-}
-
-pid_t sys_exec(char* cmd_line) {
-// load() uses filesystem
-          int pid = process_execute(cmd_line);
-          return pid;
-}
-
 void
 syscall_init (void) 
 {
@@ -200,32 +187,19 @@ char *file_name;
  
   switch(code){
     case SYS_HALT: {
-      printf("omg its shutting down");
       shutdown_power_off();
       break;
     }
 
     case SYS_EXIT:{
-      printf('omg its exiting');
       thread_current()->exit_status = *(int*)(f->esp+4);
       thread_exit(); //get from other pintos
       break;
-    }
-
-    case SYS_EXEC: {
-      printf('omg its executing');
-      if ((f->esp == NULL) || (!is_user_vaddr(f->esp)))
-            return -1;
-      else {
-        char *process = f->esp + 4;
-        sys_exec(process);
-        break;}
     }
   
    case SYS_REMOVE: {
         memcpy(&file_name,f->esp +4,4);
         f->eax = sys_remove(file_name);
-        printf("subhanAllah\n");
         break;
     }
 
@@ -261,7 +235,6 @@ char *file_name;
     memcpy(&size,f->esp +8,4);
 
     f->eax = sys_create(file_name,size);
-    printf("subhanAllah\n");
     break;
     }
 
@@ -270,11 +243,6 @@ char *file_name;
      f->eax = sys_open(file_name);
      break;
     }
-  
-  case SYS_WAIT: {
-    f->eax=sys_wait(f->esp+1);
-    break;
-  }
 
   case SYS_READ:{
       memcpy(&fd, f->esp + 4, 4);
@@ -292,10 +260,6 @@ char *file_name;
   }
 
   default:
-    printf("Sis Call sksksksks\n");
+    printf("Unimplemented syscall - buy the DLC\n");
 }
 }
-//exit.c was created for some reason
-//edits in makefile of examples(added exit_src) and exit
-//code was taken in from from different github pages combined so inshallah it should work
-//open file moved from file.c to file.h have commented all changes.cd 
