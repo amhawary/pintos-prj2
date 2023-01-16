@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <syscall.h>
-#include "lib/user/syscall.h"
 
 int
 main (int argc, char **argv)
 {
-  return exec(argv[1]);
+  printf("omg its executing 0\n");
+  return exec("echo x y z");
 }

@@ -71,21 +71,17 @@ start_process (void *file_name_)
    for (token = strtok_r (file_name, " ", &save_ptr); token != NULL;
         token = strtok_r (NULL, " ", &save_ptr)){
           argv[argc] = token;
-          printf("%s\n",argv[argc]);
           rem += strlen(argv[argc]) + 1;
           argc++;
         };
-  printf("Rem = %d\n",rem);
   rem = rem % 4;
   success = load (file_name, &if_.eip, &if_.esp);
   
   if (success == true) {
-  printf("Starting at 75\n");
   void *addrv[argc];
   
   // Push arguments onto stack + save each address in addrv
   if_.esp--;
-  printf("Reached 92\n");
   for(int i = argc - 1; i > -1; i-- ) {
     for(int j = strlen(argv[i]) - 1; j > -1; j--){
       if_.esp--;
@@ -94,29 +90,23 @@ start_process (void *file_name_)
     addrv[i] = if_.esp;
     if_.esp--;
   }
-    printf("Reached 100\n");
   // Padding
 
-  printf("Rem = %d\n",rem);
   for(int i = 0; i < rem + 4; i++) {
     if_.esp--;
   }
-    printf("Reached 108\n");
 
   // Push addresses
   for (int i = argc -1; i > -1; i--){ 
     if_.esp -= 4;
-    printf("%d\n",i);
     *((void**)if_.esp) = addrv[i];}
 
-    printf("Reached 114\n");
   	
   // Push address of addresses
   char** argvadd;
   argvadd = if_.esp;
   if_.esp -= 4;
   *((void**)if_.esp) = argvadd;
-    printf("Reached 121\n");
 
   // *((void**)if_.esp)
   // Push argc
@@ -125,9 +115,7 @@ start_process (void *file_name_)
   
   // Fake return
   if_.esp -= 4;
-  printf("Reached 127\n");
   hex_dump(if_.esp, if_.esp, PHYS_BASE - if_.esp, true);
-  printf("Reached 133\n");
   }
   /* If load failed, quit. */
   palloc_free_page (file_name);
